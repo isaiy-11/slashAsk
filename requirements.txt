@@ -13,4 +13,4 @@ pandas
 openpyxl
 beautifulsoup4
 grpcio-status>=1.75.1
-grpcio>=1.75.1
+grpcio>=1.75.1redis
