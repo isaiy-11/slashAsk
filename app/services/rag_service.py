@@ -63,7 +63,7 @@ def ask_document(
         chunk_path
     )
 
-    context = "\n".join(chunks)
+    context = "\n\n".join(chunks[:20])
 
     # Get session history
     history = get_history(

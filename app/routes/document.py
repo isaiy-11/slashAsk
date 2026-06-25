@@ -9,6 +9,8 @@ async def list_documents():
 
     upload_folder = "uploads"
 
+    os.makedirs(upload_folder, exist_ok=True)
+
     documents = os.listdir(upload_folder)
 
     return {

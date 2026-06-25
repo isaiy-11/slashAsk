@@ -50,3 +50,16 @@ def search_index(
     )
 
     return indices
+def add_embeddings_to_index(
+    index,
+    embeddings
+):
+
+    embeddings = np.array(
+        embeddings,
+        dtype=np.float32
+    )
+
+    index.add(embeddings)
+
+    return index

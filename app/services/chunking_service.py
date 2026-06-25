@@ -1,6 +1,6 @@
 def create_chunks(
     text: str,
-    chunk_size: int = 1200,
+    chunk_size: int = 1500,
     overlap: int = 250
 ):
 

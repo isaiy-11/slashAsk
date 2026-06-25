@@ -1,13 +1,17 @@
 import os
+from openai import AzureOpenAI
 
-from groq import Groq
-from dotenv import load_dotenv
+_client = None
 
-load_dotenv()
-
-client = Groq(
-    api_key=os.getenv("GROQ_API_KEY")
-)
+def get_client():
+    global _client
+    if _client is None:
+        _client = AzureOpenAI(
+            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", "https://trackerwaveaichat.openai.azure.com/"),
+            api_key=os.getenv("AZURE_OPENAI_API_KEY", ""),
+            api_version="2024-02-01"
+        )
+    return _client
 
 
 def generate_answer(
@@ -15,32 +19,59 @@ def generate_answer(
     context,
     history
 ):
-
     messages = [
         {
             "role": "system",
             "content": f"""
-You are slashAsk, a helpful AI document assistant.
+You are slashAsk, an intelligent AI assistant.
 
-Answer questions using the provided document context.
+Your job is to answer questions using the provided document context and behave like a helpful chatbot.
 
-Document Context:
+DOCUMENT CONTEXT:
 {context}
 
-If the answer is not available in the context,
-say:
+RULES:
 
-'Answer not found in the uploaded document.'
+1. Understand the document content and explain it naturally.
+2. Do not copy chunks directly from the document.
+3. Do not say:
+   - "According to the document"
+   - "The document mentions"
+   - "Refer to section"
+   - "See page"
+4. If the answer contains steps, explain them clearly in numbered format.
+5. Summarize technical content in simple language when possible.
+6. Maintain a conversational chatbot style.
+7. Use previous conversation history when relevant.
+8. If the user's input is a broad topic (e.g., "asset tracking" or "asset management"), provide a comprehensive summary of everything the document says about that topic. 
+9. If the context does not contain the answer, do your best to be helpful based on general knowledge and whatever context is available, but clarify what is and isn't from the document. Do not just reply "Answer not found".
 
-Provide clear and user-friendly responses.
+Example:
+
+Question:
+How to assign token?
+
+Bad Answer:
+The document mentions Assign Token in section 2.1.
+
+Good Answer:
+To assign a token:
+
+1. Open the application.
+2. Navigate to the Assign Token section.
+3. Select the patient.
+4. Click Assign Token.
+5. Confirm the assignment.
+
+The token will now be linked to the selected patient.
+
+Provide complete and helpful answers.
 """
         }
     ]
 
-    # Previous conversation history
     messages.extend(history)
 
-    # Current user question
     messages.append(
         {
             "role": "user",
@@ -48,8 +79,8 @@ Provide clear and user-friendly responses.
         }
     )
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+    response = get_client().chat.completions.create(
+        model="gpt-5.5",
         messages=messages
     )
 

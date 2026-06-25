@@ -8,6 +8,7 @@ from app.services.embedding_service import create_embeddings
 from app.services.retrieval_service import retrieve_chunks
 from app.models.question_model import QuestionRequest
 from app.services.rag_service import ask_document
+from app.services.session_service import get_history
 
 router = APIRouter()
 
@@ -87,31 +88,28 @@ async def test_search():
     return {
         "retrieved_chunks": results
     }
+
 @router.post("/ask-document")
 async def ask_document_api(request: QuestionRequest):
-   
-    index_path = (
-        f"vector_store/indexes/"
-        f"{request.document_name}.index"
-    )
 
-    chunk_path = (
-        f"vector_store/chunks/"
-        f"{request.document_name}.pkl"
-    )
+    try:
+        answer = ask_document(
+            request.question,
+            "vector_store/indexes/master.index",
+            "vector_store/chunks/master.pkl",
+            request.session_id
+        )
 
-    answer = ask_document(
-        request.question,
-        index_path,
-        chunk_path,
-        request.session_id
-    )
+        return {
+            "question": request.question,
+            "answer": answer
+        }
 
-    return {
-        "document": request.document_name,
-        "question": request.question,
-        "answer": answer
-    }
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
+
 @router.get("/test-search")
 async def test_search():
 
@@ -124,3 +122,31 @@ async def test_search():
     return {
         "retrieved_chunks": results
     }
+
+@router.get("/history/{session_id}")
+async def get_chat_history(session_id: str):
+    try:
+        raw_history = get_history(session_id)
+        
+        # Convert raw history list of dicts to the question-answer pair format expected by the UI
+        formatted_history = []
+        current_pair = {}
+        for msg in raw_history:
+            role = msg.get("role")
+            content = msg.get("content")
+            if role == "user":
+                current_pair["question"] = content
+            elif role == "assistant":
+                current_pair["answer"] = content
+                if "question" in current_pair:
+                    formatted_history.append(current_pair)
+                    current_pair = {}
+                    
+        return {
+            "session_id": session_id,
+            "history": formatted_history
+        }
+    except Exception as e:
+        return {
+            "error": str(e)
+        }

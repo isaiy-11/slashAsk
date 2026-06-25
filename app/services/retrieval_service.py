@@ -29,7 +29,7 @@ def retrieve_chunks(
     indices = search_index(
         index,
         query_embedding,
-        top_k=5
+        top_k=20
     )
 
     results = []
@@ -38,5 +38,8 @@ def retrieve_chunks(
 
         if idx < len(chunks):
             results.append(chunks[idx])
+
+    # Debug: Print retrieved chunks
+    # (Removed to avoid UnicodeEncodeError on Windows console)
 
     return results

@@ -6,8 +6,12 @@ from app.services.embedding_service import create_embeddings
 
 from app.database.faiss_service import create_faiss_index
 from app.database.faiss_service import save_index
+from app.database.faiss_service import load_index
+from app.database.faiss_service import add_embeddings_to_index
 
 from app.services.storage_service import save_chunks
+from app.services.storage_service import load_chunks
+from app.services.storage_service import append_chunks
 
 
 def process_document(file_path):
@@ -20,18 +24,43 @@ def process_document(file_path):
 
     index = create_faiss_index(embeddings)
 
-    filename = os.path.basename(file_path)
+    index_path = "vector_store/indexes/master.index"
 
-    index_path = f"vector_store/indexes/{filename}.index"
+    chunk_path = "vector_store/chunks/master.pkl"
 
-    chunk_path = f"vector_store/chunks/{filename}.pkl"
+    if os.path.exists(index_path):
 
-    save_index(index, index_path)
+        existing_index = load_index(
+        index_path
+        )
 
-    save_chunks(chunks, chunk_path)
+        existing_index = add_embeddings_to_index(
+        existing_index,
+        embeddings
+        )
 
+        save_index(
+        existing_index,
+        index_path
+        )
+
+    else:
+
+        index = create_faiss_index(
+        embeddings
+    )
+
+    save_index(
+        index,
+        index_path
+    )
+
+    append_chunks(
+    chunks,
+    chunk_path
+)
     return {
         "chunks_created": len(chunks),
         "index_saved": index_path,
         "chunk_file": chunk_path
-    }
+     }
