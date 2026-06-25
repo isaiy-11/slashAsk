@@ -1,6 +1,10 @@
 import streamlit as st
 import uuid
 import os
+import sys
+
+# Add project root to Python path so we can import 'app'
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import backend services directly
 from app.services.session_service import get_history
