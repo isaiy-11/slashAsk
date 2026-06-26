@@ -26,3 +26,4 @@ services:
     name: slashask-redis
     plan: free
     maxmemoryPolicy: noeviction
+    ipAllowList: []
